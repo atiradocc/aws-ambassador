@@ -1,0 +1,92 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: "A very simple EC2 instance and its keypair (in SSM)"
+Metadata:
+  License: MIT-License
+Resources:
+  iamPolicy:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      ManagedPolicyName: ListAllBuckets
+      Path: /
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Action: "s3:List*"
+            Resource: "*"
+  iamRole:
+    DependsOn:
+      - iamPolicy
+    Type: AWS::IAM::Role
+    Properties:
+      Path: /
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - ec2.amazonaws.com
+            Action:
+              - "sts:AssumeRole"
+      ManagedPolicyArns:
+        - !Ref iamPolicy
+      Tags:
+        - Key: Environment
+          Value: pre-prod
+        - Key: Role
+          Value: Demo
+        - Key: Owner
+          Value: "AWS Ambassadors"
+        - Key: Name
+          Value: AWSAmbassador_IAMRole
+  iamInstanceProfile:
+    DependsOn:
+      - iamRole
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      Path: /
+      Roles:
+        - !Ref "iamRole"
+  securityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: EC2 Instance Security Group
+      GroupDescription: Enable access admin access to this instance
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: 0.0.0.0/0
+          Description: "Access to SSH"
+      Tags:
+        - Key: Environment
+          Value: pre-prod
+        - Key: Role
+          Value: Demo
+        - Key: Owner
+          Value: "AWS Ambassadors"
+        - Key: Name
+          Value: AWSAmbassador_SecurityGroup
+  ec2Instance:
+    DependsOn:
+      - iamInstanceProfile
+      - securityGroup
+    Type: AWS::EC2::Instance
+    Properties:
+      KeyName: AWSAmbassadorKeypair
+      ImageId: ami-03ad0a83902d7df88
+      InstanceType: c6g.medium
+      IamInstanceProfile: !Ref iamInstanceProfile
+      Monitoring: true
+      SecurityGroups:
+        - !Ref "securityGroup"
+      Tags:
+        - Key: Environment
+          Value: pre-prod
+        - Key: Role
+          Value: Demo
+        - Key: Owner
+          Value: "AWS Ambassadors"
+        - Key: Name
+          Value: AWSAmbassador_EC2Instance
