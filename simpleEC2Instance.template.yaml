@@ -2,6 +2,12 @@ AWSTemplateFormatVersion: 2010-09-09
 Description: "A very simple EC2 instance and its keypair (in SSM)"
 Metadata:
   License: MIT-License
+
+Parameters:
+  LatestAmiId:
+    Type: 'AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>'
+    Default: '/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-arm64-gp2'
+
 Resources:
   iamPolicy:
     Type: AWS::IAM::ManagedPolicy
@@ -75,7 +81,7 @@ Resources:
     Type: AWS::EC2::Instance
     Properties:
       KeyName: AWSAmbassadorKeypair
-      ImageId: ami-03ad0a83902d7df88
+      ImageId: !Ref LatestAmiId
       InstanceType: c6g.medium
       IamInstanceProfile: !Ref iamInstanceProfile
       Monitoring: true
