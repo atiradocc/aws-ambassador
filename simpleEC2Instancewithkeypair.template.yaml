@@ -91,7 +91,7 @@ Resources:
     Type: AWS::EC2::Instance
     Properties:
       KeyName: !Ref AWSAmbassadorKeypair
-      ImageId: ami-03ad0a83902d7df88
+      ImageId: "{{resolve:ssm:/aws/service/ami-amazon-linux-latest/al2023-ami-kernel-6.1-arm64}}"
       InstanceType: c6g.medium
       IamInstanceProfile: !Ref iamInstanceProfile
       Monitoring: true
